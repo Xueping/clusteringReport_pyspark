@@ -169,7 +169,7 @@ def clustering(data,clusterNum):
 if __name__ == "__main__":
     
 #     ./spark-submit --master local[11] \
-#     /home/xuepeng/Documents/workspace-sts/clusteringReport_pyspark/src/clustering/kmeans.py \
+#     /home/xuepeng/Documents/workspace-sts/clusteringReport_pyspark/src/clustering/sparkClustering.py \
 #     /home/xuepeng/Documents/workspace-sts/clusteringReport_pyspark/resource/source/demo.csv 5 \
 #     /home/xuepeng/Documents/workspace-sts/clusteringReport_pyspark/resource/dependency-files \
 #     /home/xuepeng/output
