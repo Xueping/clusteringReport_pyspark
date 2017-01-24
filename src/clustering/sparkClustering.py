@@ -4,13 +4,15 @@ Created on 17 Jan 2017
 @author: xuepeng
 '''
 
-from pyspark import SparkContext
-from pyspark.mllib.linalg import Vectors
-from pyspark.mllib.clustering import KMeans
-import random
-import sys
 import os
+from pyspark import SparkContext
+from pyspark.mllib.clustering import KMeans
+from pyspark.mllib.linalg import Vectors
+import random
+import shutil
+import sys
 import zipfile
+
 
 def zipdir(path, ziph):
     # ziph is zipfile handle
@@ -18,14 +20,14 @@ def zipdir(path, ziph):
         for f in files:
             ziph.write(os.path.join("dependency-files/", f))
             
-def zipFile(jsonStr,srcFile,output):     
+def zipFile(jsonStr,output):     
     message = """   
     <html>
         <head>
             <meta http-equiv="Content_Type" content="text/html; charset=UTF-8" />
             <link type="text/css" rel="stylesheet" href="./dependency-files/style.css" />
             <link type="text/css" rel="stylesheet" href="./dependency-files/bootstrap.min.css" />
-            <script type="text/javascript" src="./dependency-files/d3.layout.js.download"></script>
+            <script type="text/javascript" src="./dependency-files/d3.layout.js"></script>
             <script type="text/javascript" src="./dependency-files/d3pie.js"></script>
             <script type="text/javascript" src="./dependency-files/jquery.js"></script>
             <script type="text/javascript" src="./dependency-files/d3.min.js"></script>
@@ -54,7 +56,7 @@ def zipFile(jsonStr,srcFile,output):
                      )
     try:        
         zf.writestr('offline_clustering_report.html', message)
-        zipdir(srcFile, zf)
+        zipdir("dependency-files/", zf)
     finally:
         zf.close()   
 
@@ -179,8 +181,8 @@ if __name__ == "__main__":
     dataFile     = str(sys.argv[1]) #data file
 #     clusterNum = 5
     clusterNum   = int(sys.argv[2]) #cluster number
-    srcFile      = str(sys.argv[3]) #static file to show web page
-    output       = str(sys.argv[4]) #target file path
+#     srcFile      = str(sys.argv[3]) #static file to show web page
+    output       = str(sys.argv[3]) #target file path
     
         
     data = readData(dataFile)
@@ -211,4 +213,4 @@ if __name__ == "__main__":
     strBuilder = strBuilder + clustering(data,clusterNum) + "]}"
     strBuilder = strBuilder.replace(",]", "]").replace(",}", "}")
     
-    zipFile(strBuilder,srcFile,output)
+    zipFile(strBuilder,output)
