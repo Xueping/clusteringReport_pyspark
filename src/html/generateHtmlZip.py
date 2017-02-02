@@ -10,7 +10,50 @@ def zipdir(path, ziph):
     # ziph is zipfile handle
     for root,dirs, files in os.walk(path):
         for f in files:
-            ziph.write(os.path.join(root, f))
+            ziph.write(os.path.join("dependency-files/", f))
+            
+def zipFileWithTargetPath(jsonStr,output):     
+    message = """   
+    <html>
+        <head>
+            <meta http-equiv="Content_Type" content="text/html; charset=UTF-8" />
+            <link type="text/css" rel="stylesheet" href="./dependency-files/style.css" />
+            <link type="text/css" rel="stylesheet" href="./dependency-files/bootstrap.min.css" />
+            <script type="text/javascript" src="./dependency-files/d3.layout.js"></script>
+            <script type="text/javascript" src="./dependency-files/d3pie.js"></script>
+            <script type="text/javascript" src="./dependency-files/jquery.js"></script>
+            <script type="text/javascript" src="./dependency-files/d3.min.js"></script>
+        </head>
+        <body>
+            <div id="header">Offline Web-based Interactive Clustering Analysis Report</div>
+            <div id="body"></div>
+            <div id="popup">
+                <div class="row">
+                    <div class="col-md-4" id="pie_gender"></div>
+                    <div class="col-md-4" id="pie_age"></div>
+                    <div class="col-md-4" id="pie_freq"></div>
+                </div>
+            </div>
+            <script type="text/javascript">var flare = '"""+ jsonStr +"""' </script>
+            <script type="text/javascript" src="./dependency-files/clusterReport.js"></script>
+        </body>
+    </html>
+    """
+    if os.path.exists(output + '/zipfile_writestr.zip'):
+        os.remove(output + '/zipfile_writestr.zip')
+        
+    
+    
+    zf = zipfile.ZipFile(output + '/zipfile_writestr.zip', 
+                     mode='a',
+                     compression=zipfile.ZIP_DEFLATED, 
+                     )
+    try:        
+        zf.writestr('offline_clustering_report.html', message)
+        zipdir("dependency-files/", zf)
+    finally:
+        zf.close()   
+
             
 def zipFile(jsonStr):     
     message = """   
