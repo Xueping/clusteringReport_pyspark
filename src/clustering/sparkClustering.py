@@ -176,8 +176,8 @@ if __name__ == "__main__":
         temp.write(strBuilder)
         temp.seek(0)
         
-        subprocess.check_call(["hadoop","fs","-put","-f",temp.name, output])
-        subprocess.check_call(["hadoop","fs","-mv",output+"/"+temp.name, output+"/results.json"])
+        subprocess.check_call(["hadoop","fs","-put","-f",temp.name, output])        
+        subprocess.check_call(["hadoop","fs","-mv",output+"/"+temp.name.split("/")[2], output+"/results.json"])
         
         print temp.read()
         print 'temp:', temp
