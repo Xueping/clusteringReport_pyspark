@@ -160,7 +160,8 @@ if __name__ == "__main__":
         json.dump(res[0], temp)
         temp.seek(0)
         
-        subprocess.check_call(["hadoop","fs","-put","-f",temp.name, output])        
+        subprocess.check_call(["hadoop","fs","-put","-f",temp.name, output]) 
+        subprocess.check_call(["hadoop","fs","-rm",output+"/results.json"])      
         subprocess.check_call(["hadoop","fs","-mv",output+"/"+temp.name.split("/")[2], output+"/results.json"])
         
         print temp.read()
