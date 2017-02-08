@@ -1,0 +1,5 @@
+{
+	"feature":["ethnicity_itemid","overall_payor_group_itemid","admission_type_itemid","sex","hospital_expire_flg","stay","freq"],
+	"categoricalFeature":["ethnicity_itemid","overall_payor_group_itemid","admission_type_itemid"],
+	"display":{"ethnicity_itemid":"ethnicity","overall_payor_group_itemid":"Payor Group","admission_type_itemid":"Admission Type","sex":"Sex","hospital_expire_flg":"Hospital Expire","stay":"Stay Days","freq":"Frequence"}
+}

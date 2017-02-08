@@ -9,42 +9,89 @@
 	<script type="text/javascript" src="./dependency-files/d3pie.js"></script>
 	<script type="text/javascript" src="./dependency-files/jquery.js"></script>
 	<script type="text/javascript" src="./dependency-files/d3.min.js"></script>
+	<script type="text/javascript" src="./dependency-files/d3-line-chart.js"></script>
+	
     <style type="text/css">
 
-.chart {
-  display: block;
-  margin: auto;
-  margin-top: 60px;
-  font-size: 11px;
-}
-
-rect {
-  stroke: #eee;
-  fill: #aaa;
-  fill-opacity: .8;
-}
-
-rect.parent {
-  cursor: pointer;
-  
-  fill: steelblue;
-}
-
-text {
-  pointer-events: none;
-}
+		.chart {
+		  display: block;
+		  margin: auto;
+		  margin-top: 60px;
+		  font-size: 11px;
+		}
+		
+		rect {
+		  stroke: #eee;
+		  fill: #aaa;
+		  fill-opacity: .8;
+		}
+		
+		rect.parent {
+		  cursor: pointer;
+		  
+		  fill: steelblue;
+		}
+		
+		text {
+		  pointer-events: none;
+		}
+		
+		.line { fill: none; }	
+		.line-title {
+		    float: right;
+			font-size: 20px; 
+			font-family: arial;
+		}
+		
+		.commit-circle, .legend-circle {
+			stroke-width: 0.10em;
+		}
+		.commit-circle.selected, .legend-circle.selected {
+			stroke-width: 0.22em;
+		}
+		#tooltip {
+			position: absolute;
+			width: 200px;
+			height: auto;
+			padding: 10px;
+			background-color: white;
+			-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+			-moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+			box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+			pointer-events: none;
+		}
+		#tooltip.hidden {
+			display: none;
+		}
+		#tooltip p {
+			margin: 0;
+			font-family: sans-serif;
+		}
+		#tooltip .title {
+			text-decoration: underline;
+		}
 
     </style>
   </head>
   <body>
   <div id="header">Web-based Interactive Clustering Analysis Report</div>
     <div id="body"></div>
+    <div id="tooltip" class="hidden">
+		<p class="title"></p>
+		<p class="desc"></p>
+		<ul class="values"></ul>
+	</div>
 	  
 	<div id = "popup">
 		<div class="row">
 		  <div class="col-md-4" id="pie_gender"></div>
 		  <div class="col-md-4" id="pie_age"></div>
 		  <div class="col-md-4" id="pie_freq"></div>
+		</div>
+		<div class="row">
+		  <div class="col-md-4" id="line_gender"></div>
+		  <div class="col-md-4" id="line_age"></div>
+		  <div class="col-md-4" id="line_freq"></div>
 		</div>
 	</div>
     <script type="text/javascript">
@@ -70,8 +117,43 @@ var partition = d3.layout.partition()
     .value(function(d) { return d.size; });
 	
 d3.json('output/results.json',function(root){
+	
+	function compare(a,b) {
+		  if (a.x < b.x)
+		    return -1;
+		  if (a.x > b.x)
+		    return 1;
+		  return 0;
+		}
 
-var g = vis.selectAll("g")
+		//objs.sort(compare);
+	
+	function getData(data){
+		
+		var feature = data.split(',');
+		var feature_content = [];
+		var i;
+		for (i = 0; i < feature.length; i++) {
+			var f = feature[i].split(':');
+			feature_content.push({label: f[0], value: Number(f[1])});
+		}
+		return feature_content;
+	}values: [{x: 4, y: 1}, {x: 3, y : 2}, {x:1, y: 2}]
+	
+	function getData4Line(data){
+		
+		var feature = data.split(',');
+		var feature_content = [];
+		var i;
+		for (i = 0; i < feature.length; i++) {
+			var f = feature[i].split(':');
+			feature_content.push({x: Number(f[0]), y: Number(f[1])});
+		}
+		feature_content.sort(compare)
+		return feature_content;
+	}
+
+	var g = vis.selectAll("g")
       .data(partition.nodes(root))
     .enter().append("svg:g")
       .attr("transform", function(d) { return "translate(" + x(d.y) + "," + y(d.x) + ")"; })
@@ -103,6 +185,7 @@ var g = vis.selectAll("g")
 		.style("width", width_pie + "px")
 		.style("height", height_pie + "px");
 	
+
 	var pie_gender = new d3pie("pie_gender", {
 		header: {
 			title: {
@@ -117,17 +200,16 @@ var g = vis.selectAll("g")
 		    "pieOuterRadius": "72%"
 		},
 		data: {
-			content: [
-				{ label: "Male", value: root.gender.M },
-				{ label: "Female", value: root.gender.F }
-			]
+			content: getData(root.feature_7)
+
 		}
 	});
 	
 	d3.select("#pie_age")
 		.style("width", width_pie + "px")
 		.style("height", height_pie + "px");
-		
+	
+
 	var pie_age = new d3pie("pie_age", {
 		header: {
 			title: {
@@ -142,19 +224,15 @@ var g = vis.selectAll("g")
 		    "pieOuterRadius": "72%"
 		},
 		data: {
-			content: [
-				{ label: "<=12", value: root.adm.a1 },
-				{ label: "50+", value: root.adm.a2 },
-				{ label: "20~50", value: root.adm.a3 },
-				{ label: "13~19", value: root.adm.a4 }
-			]
+			content: getData(root.feature_5)
 		}
 	});
 	
 	d3.select("#pie_freq")
 		.style("width", width_pie + "px")
 		.style("height", height_pie + "px");
-		
+	
+
 	var pie_freq = new d3pie("pie_freq", {
 		header: {
 			title: {
@@ -169,22 +247,62 @@ var g = vis.selectAll("g")
 		    "pieOuterRadius": "72%"
 		},
 		data: {
-			content: [
-				{ label: "11", value: root.payor.p1 },
-				{ label: "12", value: root.payor.p2 },
-				{ label: "13", value: root.payor.p3 },
-				{ label: "14", value: root.payor.p4 },
-				{ label: "15", value: root.payor.p5 },
-				{ label: "16", value: root.payor.p6 },
-				{ label: "17", value: root.payor.p7 },
-				{ label: "18", value: root.payor.p8 }
-			]
+			content: getData(root.feature_4)
 		}
 	});
+	
+	
+	
+	var data = {
+			name: 'series a',
+			values: getData4Line(root.feature_2)
+		};
+	var lc_line_gender = new LineChart({
+		parent: '#line_gender',
+		graph_width: width_pie,
+		graph_height: height_pie,
+		x_axis_text: 'time',
+		y_axis_text: 'population',
+		all_series: [data],
+		color:'green'
+	});
+	lc_line_gender.plot();
+	
+	var data = {
+			name: 'series b',
+			values: getData4Line(root.feature_7)
+		};
+	var lc_line_age = new LineChart({
+		parent: '#line_age',
+		graph_width: width_pie,
+		graph_height: height_pie,
+		x_axis_text: 'time',
+		y_axis_text: 'population',
+		all_series: [data],
+		color:'red',
+		point_size:4
+	});
+	lc_line_age.plot();
+	
+	var data = {
+			name: 'series c',
+			values: getData4Line(root.feature_6)
+		};
+	var lc_line_freq = new LineChart({
+		parent: '#line_freq',
+		graph_width: width_pie,
+		graph_height: height_pie,
+		x_axis_text: 'time',
+		y_axis_text: 'population',
+		all_series: [data],
+		color:'blue'
+	
+	});
+	lc_line_freq.plot();
+	
 
   function click(d) {
-    
-
+	  
     kx = (d.y ? w - 40 : w) / (1 - d.y);
     ky = h / d.dx;
     x.domain([d.y, 1]).range([d.y ? 40 : 0, w]);
@@ -203,30 +321,32 @@ var g = vis.selectAll("g")
         .style("opacity", function(d) { return d.dx * ky > 12 ? 1 : 0; });
 
     d3.event.stopPropagation();
-
+   
+    pie_gender.updateProp("data.content", getData(d.feature_7));
+	pie_age.updateProp("data.content", getData(d.feature_5));
+	pie_freq.updateProp("data.content", getData(d.feature_4));
 	
-	var pieData = [];
-	pieData.push({label: "Male",value: d.gender.M});
-	pieData.push({label: "Female",value: d.gender.F});
-    pie_gender.updateProp("data.content", pieData);
+	d3.select("#line_gender").html("");
+	d3.select("#line_age").html("");
+	d3.select("#line_freq").html("");
 	
-	var pieAgeData = [];
-	pieAgeData.push({ label: "<=12",  value: d.adm.a1 });
-	pieAgeData.push({ label: "50+",   value: d.adm.a2 });
-	pieAgeData.push({ label: "20~50", value: d.adm.a3 });
-	pieAgeData.push({ label: "13~19", value: d.adm.a4 });
-	pie_age.updateProp("data.content", pieAgeData);
+	var data = {
+			name: 'series a',
+			values: getData4Line(d.feature_2)
+		};
+	lc_line_gender.for([data]).plot();
 	
-	var pieFreqData = [];
-	pieFreqData.push({ label: "11", value: root.payor.p1 });
-	pieFreqData.push({ label: "12", value: root.payor.p2 });
-	pieFreqData.push({ label: "13", value: root.payor.p3 });
-	pieFreqData.push({ label: "14", value: root.payor.p4 });
-	pieFreqData.push({ label: "15", value: root.payor.p5 });
-	pieFreqData.push({ label: "16", value: root.payor.p6 });
-	pieFreqData.push({ label: "17", value: root.payor.p7 });
-	pieFreqData.push({ label: "18", value: root.payor.p8 });
-	pie_freq.updateProp("data.content", pieFreqData);
+	var data = {
+			name: 'series b',
+			values: getData4Line(d.feature_7)
+		};
+	lc_line_age.for([data]).plot();
+	
+	var data = {
+			name: 'series b',
+			values: getData4Line(d.feature_6)
+		};
+	lc_line_freq.for([data]).plot();
 		
   }
 
@@ -234,9 +354,7 @@ var g = vis.selectAll("g")
     return "translate(8," + d.dx * ky / 2 + ")";
   }
 })
-  
-  
+   
  </script>
   
-
 </body></html>

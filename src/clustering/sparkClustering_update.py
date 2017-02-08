@@ -9,51 +9,40 @@ from pyspark import SparkContext
 from pyspark.ml.feature import StringIndexer, OneHotEncoder
 from pyspark.mllib.clustering import KMeans
 from pyspark.mllib.linalg import Vectors
+from pyspark.sql.context import SQLContext
 import random
 import subprocess
 import sys
 import tempfile
 
 
-
-def dataPreprocess(line,ethnicities,payors,admissions):
-    
-    values = line.split(",")
-        
-    values.pop(0)
-    ethnicity = values.pop(0)
-    payor     = values.pop(0)
-    admission = values.pop(0)
-    vector = map(lambda x: float(x), values)
-    
-    newEthnicityFeatures = [0.0] * len(ethnicities)
-    newEthnicityFeatures[ethnicities[ethnicity]] = 1.0
-    
-    newPayorFeatures = [0.0] * len(payors)
-    newPayorFeatures[payors[payor]] = 1.0
-    
-    newAdmissionFeatures = [0.0] * len(admissions)
-    newAdmissionFeatures[admissions[admission]] = 1.0
+def parseRowOneHotRegression(line, categoricalFeatures,originalFeature):
      
-    vector.extend(newAdmissionFeatures)
-    vector.extend(newPayorFeatures)
-    vector.extend(newEthnicityFeatures)
+    feature = []
+       
+    for of in originalFeature:
+        feature.append(line[of])
+        
+    for f in categoricalFeatures:
+        feature.extend(line[f+'Vec'].toArray())
          
-    return (Vectors.dense(vector), line)
+    return  (Vectors.dense(feature),line)
+
+def indexAndEncode(processedData,features):
     
-    
-def vectorization(normalizedData):
+    encodedFinal = processedData
+    for feature in features:
+        
+        stringIndexer = StringIndexer(inputCol=feature, outputCol=feature+"Index")
+        model = stringIndexer.fit(encodedFinal) # Input data-frame is the cleaned one from above
+        indexed = model.transform(encodedFinal)
+        encoder = OneHotEncoder(dropLast=False, inputCol=feature+"Index", outputCol=feature+"Vec")
+        encodedFinal = encoder.transform(indexed)
 
-    ethnicities = normalizedData.map(lambda item : item.split(",")[1]).distinct().zipWithIndex().collect()
-    ethnicities = dict((key, value) for (key, value) in ethnicities)
-    payors      = normalizedData.map(lambda item : item.split(",")[2]).distinct().zipWithIndex().collect()
-    payors = dict((key, value) for (key, value) in payors)
-    admissions  = normalizedData.map(lambda item : item.split(",")[3]).distinct().zipWithIndex().collect()
-    admissions = dict((key, value) for (key, value) in admissions)
+    return encodedFinal
 
-    return normalizedData.map(lambda item : dataPreprocess(item,ethnicities,payors,admissions))
 
-def clustering(data,clusterNum):
+def clustering(data,clusterNum,allFeatures):
      
     res = []
     
@@ -82,16 +71,16 @@ def clustering(data,clusterNum):
         
         child = {"name": str(size) , "clusterId":str(clust)}
         
-        for index in range(1,8):
-            feature = newPoints.map(lambda item: item[1].split(",")[index]).map ( lambda x : (x,1)).reduceByKey(lambda a, b: a + b).collect()
+        for index in allFeatures:
+            feature = newPoints.map(lambda item: item[1][index]).map ( lambda x : (x,1)).reduceByKey(lambda a, b: a + b).collect()
             strBuilder = ""
             for item  in feature:
                 strBuilder = strBuilder +  item[0] + ":" + str(item[1]) + ","
             strBuilder = strBuilder[:-1]
-            child["feature_"+str(index)] = strBuilder 
+            child[index] = strBuilder 
         
         if ids[a][1] > 100:
-            child["children"] = clustering(newPoints,clusterNum)
+            child["children"] = clustering(newPoints,clusterNum,allFeatures)
             res.append(child)
         else:
             child["size"] = str(random.randint(500,1000))
@@ -100,22 +89,7 @@ def clustering(data,clusterNum):
     return res
 
 
-def indexAndEncode(processedData):
-    # INDEX AND ENCODE direction1
-    stringIndexer = StringIndexer(inputCol="direction1", outputCol="direction1Index")
-    model = stringIndexer.fit(processedData) # Input data-frame is the cleaned one from above
-    indexed = model.transform(processedData)
-    encoder = OneHotEncoder(dropLast=False, inputCol="direction1Index", outputCol="direction1Vec")
-    encoded1 = encoder.transform(indexed)
-    
-    # INDEX AND ENCODE direction2
-    stringIndexer = StringIndexer(inputCol="direction2", outputCol="direction2Index")
-    model = stringIndexer.fit(encoded1) # Input data-frame is the cleaned one from above
-    indexed = model.transform(encoded1)
-    encoder = OneHotEncoder(dropLast=False, inputCol="direction2Index", outputCol="direction2Vec")
-    encodedFinal = encoder.transform(indexed)
-    
-    return encodedFinal
+
    
 if __name__ == "__main__":
     
@@ -128,31 +102,57 @@ if __name__ == "__main__":
 
 #     srcFile = "../../resource/source/demo.csv"
     dataFile     = str(sys.argv[1]) #data file
+#     "/home/xuepeng/Documents/workspace-sts/clusteringReport_pyspark/resource/output/conf.json"
+    confFile     = str(sys.argv[2]) #data file
 #     clusterNum = 5
-    clusterNum   = int(sys.argv[2]) #cluster number
+    clusterNum   = int(sys.argv[3]) #cluster number
 #     srcFile      = str(sys.argv[3]) #static file to show web page
-    output       = str(sys.argv[3]) #target file path
+    output       = str(sys.argv[4]) #target file path
+    
+    #read json file from HDFS
+    cat = subprocess.Popen(["hadoop", "fs", "-cat", confFile], stdout=subprocess.PIPE)
+     
+    #concenate string to JSON 
+    jsonStr = ''
+    for line in cat.stdout:
+        jsonStr = jsonStr + line
+    #load and parse Json
+    conf = json.loads(jsonStr)
+    
+    allFeatures = conf['feature']
+    categoricalFeatures = conf['categoricalFeature']
+    
+    originalFeature = []
+    for cf in allFeatures:
+        if cf not in categoricalFeatures:
+            originalFeature.append(cf)
     
     
-    sc = SparkContext("local[10]", "clusteringReport")    
+    sc = SparkContext("local[10]", "clusteringReport")   
+    sqlContext = SQLContext(sc)
     
     rawData = sc.textFile(dataFile)
     header = rawData.first()
     rawData_withoutHeader = rawData.filter(lambda x : (x != header) and ",," not in x)
-    data = vectorization(rawData_withoutHeader)
+        
+    df = rawData_withoutHeader.map(lambda item : item.split(",")).toDF(header.split(","))
+    dataSet = df.select(allFeatures)
+    encodeDataSet = indexAndEncode(dataSet,categoricalFeatures)
+      
+    data = encodeDataSet.map(lambda line : parseRowOneHotRegression(line, categoricalFeatures,originalFeature))
     
     res = []
     child = {"name": str(data.count()) , "clusterId":"Initial Data"}
     
-    for index in range(1,8):
-        feature = data.map(lambda item: item[1].split(",")[index]).map ( lambda x : (x,1)).reduceByKey(lambda a, b: a + b).collect()
+    for index in allFeatures:
+        feature = data.map(lambda item: item[1][index]).map ( lambda x : (x,1)).reduceByKey(lambda a, b: a + b).collect()
         strBuilder = ""
         for item  in feature:
             strBuilder = strBuilder +  item[0] + ":" + str(item[1]) + ","
         strBuilder = strBuilder[:-1]
-        child["feature_"+str(index)] = strBuilder
+        child[index] = strBuilder
         
-    child["children"] = clustering(data,clusterNum)   
+    child["children"] = clustering(data,clusterNum,allFeatures)   
     res.append(child)
     
     temp = tempfile.NamedTemporaryFile()
