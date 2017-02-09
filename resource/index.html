@@ -200,7 +200,7 @@ d3.json('output/results.json',function(root){
 		    "pieOuterRadius": "72%"
 		},
 		data: {
-			content: getData(root.feature_7)
+			content: getData(root.gender)
 
 		}
 	});
@@ -213,7 +213,7 @@ d3.json('output/results.json',function(root){
 	var pie_age = new d3pie("pie_age", {
 		header: {
 			title: {
-				text: "Age percentage",
+				text: "Latest Hospital Type",
 				fontSize: 20
 			}
 		},
@@ -224,7 +224,7 @@ d3.json('output/results.json',function(root){
 		    "pieOuterRadius": "72%"
 		},
 		data: {
-			content: getData(root.feature_5)
+			content: getData(root.latest_hospital_type)
 		}
 	});
 	
@@ -236,7 +236,7 @@ d3.json('output/results.json',function(root){
 	var pie_freq = new d3pie("pie_freq", {
 		header: {
 			title: {
-				text: "Frequence percentage",
+				text: "Latest Admission Year",
 				fontSize: 20
 			}
 		},
@@ -247,7 +247,7 @@ d3.json('output/results.json',function(root){
 		    "pieOuterRadius": "72%"
 		},
 		data: {
-			content: getData(root.feature_4)
+			content: getData(root.latest_adm_year)
 		}
 	});
 	
@@ -255,14 +255,14 @@ d3.json('output/results.json',function(root){
 	
 	var data = {
 			name: 'series a',
-			values: getData4Line(root.feature_2)
+			values: getData4Line(root.tot_visit_ed)
 		};
 	var lc_line_gender = new LineChart({
 		parent: '#line_gender',
 		graph_width: width_pie,
 		graph_height: height_pie,
-		x_axis_text: 'time',
-		y_axis_text: 'population',
+		x_axis_text: 'Emergency Total Visit',
+		y_axis_text: 'times',
 		all_series: [data],
 		color:'green'
 	});
@@ -270,14 +270,14 @@ d3.json('output/results.json',function(root){
 	
 	var data = {
 			name: 'series b',
-			values: getData4Line(root.feature_7)
+			values: getData4Line(root.tot_visit_acute)
 		};
 	var lc_line_age = new LineChart({
 		parent: '#line_age',
 		graph_width: width_pie,
 		graph_height: height_pie,
-		x_axis_text: 'time',
-		y_axis_text: 'population',
+		x_axis_text: 'Acute Total Visit',
+		y_axis_text: 'times',
 		all_series: [data],
 		color:'red',
 		point_size:4
@@ -286,14 +286,14 @@ d3.json('output/results.json',function(root){
 	
 	var data = {
 			name: 'series c',
-			values: getData4Line(root.feature_6)
+			values: getData4Line(root.age_in_2015)
 		};
 	var lc_line_freq = new LineChart({
 		parent: '#line_freq',
 		graph_width: width_pie,
 		graph_height: height_pie,
-		x_axis_text: 'time',
-		y_axis_text: 'population',
+		x_axis_text: 'age',
+		y_axis_text: 'times',
 		all_series: [data],
 		color:'blue'
 	
@@ -322,9 +322,9 @@ d3.json('output/results.json',function(root){
 
     d3.event.stopPropagation();
    
-    pie_gender.updateProp("data.content", getData(d.feature_7));
-	pie_age.updateProp("data.content", getData(d.feature_5));
-	pie_freq.updateProp("data.content", getData(d.feature_4));
+    pie_gender.updateProp("data.content", getData(d.gender));
+	pie_age.updateProp("data.content", getData(d.latest_hospital_type));
+	pie_freq.updateProp("data.content", getData(d.latest_adm_year));
 	
 	d3.select("#line_gender").html("");
 	d3.select("#line_age").html("");
@@ -332,19 +332,19 @@ d3.json('output/results.json',function(root){
 	
 	var data = {
 			name: 'series a',
-			values: getData4Line(d.feature_2)
+			values: getData4Line(d.tot_visit_ed)
 		};
 	lc_line_gender.for([data]).plot();
 	
 	var data = {
 			name: 'series b',
-			values: getData4Line(d.feature_7)
+			values: getData4Line(d.tot_visit_acute)
 		};
 	lc_line_age.for([data]).plot();
 	
 	var data = {
 			name: 'series b',
-			values: getData4Line(d.feature_6)
+			values: getData4Line(d.age_in_2015)
 		};
 	lc_line_freq.for([data]).plot();
 		
