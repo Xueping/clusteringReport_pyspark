@@ -128,7 +128,7 @@ if __name__ == "__main__":
             originalFeature.append(cf)
     
     
-    sc = SparkContext("clusteringReport")   
+    sc = SparkContext()   
     sqlContext = SQLContext(sc)
     
     rawData = sc.textFile(dataFile)
