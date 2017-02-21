@@ -3,7 +3,7 @@ Created on 17 Jan 2017
 
 @author: xuepeng
 '''
-
+''' hello world, it is a test of VI command by Guodong '''
 from pyspark import SparkContext
 from pyspark.mllib.clustering import KMeans
 from pyspark.mllib.linalg import Vectors
@@ -14,7 +14,7 @@ import subprocess
 
 
 def dataPreprocess(line,ethnicities,payors,admissions):
-    
+     
     values = line.split(",")
         
     label     = values.pop(0)
@@ -112,7 +112,8 @@ def clustering(data,clusterNum):
 def readData(dataFile):
     
 #     demoFile = "../../resource/source/demo.csv"  # Should be some file on your system
-    sc = SparkContext("local[10]", "clusteringReport")
+    
+sc = SparkContext("local[10]", "clusteringReport")
     rawData = sc.textFile(dataFile)
     header = rawData.first()
     rawData_withoutHeader = rawData.filter(lambda x : (x != header) and ",," not in x)
@@ -142,8 +143,8 @@ if __name__ == "__main__":
     rawData_withoutHeader = rawData.filter(lambda x : (x != header) and ",," not in x)
     data = vectorization(rawData_withoutHeader)
     
-    
-     
+
+
     statisticEthnicity  = data.map(lambda item: item[1].split(",")[1]).map ( lambda x : (x,1)).reduceByKey(lambda a, b: a + b).collect()
     statisticPayor      = data.map(lambda item: item[1].split(",")[2]).map ( lambda x : (x,1)).reduceByKey(lambda a, b: a + b).collect()
     statisticAdmission  = data.map(lambda item: item[1].split(",")[3]).map ( lambda x : (x,1)).reduceByKey(lambda a, b: a + b).collect()
