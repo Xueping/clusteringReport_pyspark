@@ -15,7 +15,6 @@ import subprocess
 import sys
 import tempfile
 
-
 def parseRowOneHotRegression(line, categoricalFeatures,originalFeature):
      
     feature = []
