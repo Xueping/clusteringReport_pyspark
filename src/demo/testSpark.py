@@ -39,9 +39,7 @@ def indexAndEncode(processedData,features):
 
     return encodedFinal
 
-
-if __name__ == "__main__":
-
+def temp():
     #read json file from HDFS
     cat = subprocess.Popen(["hadoop", "fs", "-cat", "/home/xuepeng/Documents/workspace-sts/clusteringReport_pyspark/resource/output/conf.json"], stdout=subprocess.PIPE)
      
@@ -90,4 +88,12 @@ if __name__ == "__main__":
 #     processedData.show()
      
 #     print len(processedData)
+
+
+if __name__ == "__main__":
+    
+    sc = SparkContext("local[10]", "clusteringReport")
+    sqlContext = SQLContext(sc)
+
+    
     

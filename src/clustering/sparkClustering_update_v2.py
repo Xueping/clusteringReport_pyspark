@@ -134,7 +134,8 @@ if __name__ == "__main__":
     rawData = sc.textFile(dataFile)
     header = rawData.first()
     rawData_withoutHeader = rawData.filter(lambda x : (x != header) and ",," not in x)
-        
+    
+    
     df = rawData_withoutHeader.map(lambda item : item.split(",")).toDF(header.split(","))
     dataSet = df.select(allFeatures)
     encodeDataSet = indexAndEncode(dataSet,categoricalFeatures)
