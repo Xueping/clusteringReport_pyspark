@@ -25,6 +25,6 @@ def testSC():
     print textFile.count()
 
 if __name__ == '__main__':
-#     wordCount()
-    testSC()
+    wordCount()
+#     testSC()
     

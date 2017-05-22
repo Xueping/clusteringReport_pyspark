@@ -113,7 +113,7 @@ def readData(dataFile):
     
 #     demoFile = "../../resource/source/demo.csv"  # Should be some file on your system
     
-sc = SparkContext("local[10]", "clusteringReport")
+    sc = SparkContext("local[10]", "clusteringReport")
     rawData = sc.textFile(dataFile)
     header = rawData.first()
     rawData_withoutHeader = rawData.filter(lambda x : (x != header) and ",," not in x)

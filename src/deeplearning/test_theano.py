@@ -1,4 +1,4 @@
-import theano.tensor as T
+import theano.tensor as T 
 import numpy
 
 from theano import function
