@@ -6,5 +6,3 @@ print(node1, node2)
 
 sess = tf.Session()
 print(sess.run([node1, node2]))
-
-
