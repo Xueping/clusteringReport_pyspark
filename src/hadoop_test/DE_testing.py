@@ -36,5 +36,4 @@ if __name__ == "__main__":
     endTime = time()
     
     print 'Spent {} seconds in clustering {} rows with {} features.'.format((endTime - startTime),numRows,numFeatures)
-    
     print model.centers
